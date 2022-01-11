@@ -4,8 +4,6 @@ Implementation of 'A prototype crossword compiler', P. D. Smith and S. Y. Steen,
 
 import numpy
 import random
-import json
-import time
 
 
 UNIT_FREE = 0
@@ -236,13 +234,12 @@ def generate(diagram, lexicon):
 
 
 def main():
-    diagram = Diagram(5, 5, 0)
-    # print(diagram)
-    # print(diagram.start_squares)
-    # print("\n".join(map(str, diagram.slots)))
-    with open("lexicon.json", "r", encoding="utf8") as file:
-        lexicon = Lexicon(json.load(file))
-    # print(lexicon.select_word(["B", "O", "N", "J", "A", None, None]))
+    diagram = Diagram(9, 13, .3)
+    with open("data/ouestfrance.tsv", "r", encoding="utf8") as file:
+        words = []
+        for line in file.readlines():
+            words.append(line.strip().split("\t")[0])
+        lexicon = Lexicon(words)
     try:
         generate(diagram, lexicon)
     except KeyboardInterrupt:
