@@ -4,6 +4,7 @@ Implementation of 'A prototype crossword compiler', P. D. Smith and S. Y. Steen,
 
 import numpy
 import random
+import time
 
 
 UNIT_FREE = 0
@@ -144,8 +145,9 @@ class Lexicon:
             self.lengths.setdefault(len(word), [])
             self.lengths[len(word)].append(word)
         self.bitmaps = {}
+        print("Creating bitmaps: ", end="")
         for l in sorted(self.lengths):
-            print("Creating bitmap for length", l)
+            print(l, end=" ")
             self.bitmaps[l] = numpy.zeros((
                 len(self.lengths[l]),
                 len(self.alphabet),
@@ -156,6 +158,7 @@ class Lexicon:
                     for k, char in enumerate(word):
                         if char == letter:
                             self.bitmaps[l][i, j, k] = 1
+        print("")
 
     def select_word(self, frame):
         """
@@ -199,7 +202,7 @@ class Lexicon:
         return choices.size
 
 
-def generate_aux(diagram, lexicon, blacklist={}):
+def generate_aux(diagram, lexicon, time_start, time_max, blacklist={}):
     empty_slots = list(diagram.get_empty_slots())
     if len(empty_slots) == 0:
         print("All slots are filled!")
@@ -215,9 +218,12 @@ def generate_aux(diagram, lexicon, blacklist={}):
     for word in lexicon.select_word(frame):
         if word in blacklist:
             continue
+        if time.time() - time_start > time_max:
+            print("Early stopping")
+            return False
         slot.fill(word)
         diagram.fill(slot)
-        if generate_aux(diagram, lexicon, {word}.union(blacklist)):
+        if generate_aux(diagram, lexicon, time_start, time_max, {word}.union(blacklist)):
             # All slots were filled, we can return safely
             return True
     # If we are here, then all possibilities are exhausted
@@ -230,7 +236,7 @@ def generate_aux(diagram, lexicon, blacklist={}):
 def generate(diagram, lexicon):
     for slot in diagram.slots:
         slot.alternatives = len(lexicon.lengths[slot.length])
-    generate_aux(diagram, lexicon)
+    generate_aux(diagram, lexicon, time.time(), 10)
 
 
 def main():
