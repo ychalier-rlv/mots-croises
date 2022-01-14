@@ -2,31 +2,34 @@
 
 <html>
 
-<head>
+<head lang="fr">
     <meta charset="utf8">
     <title>Crosswords</title>
-    <script src="math.js"></script>
+    <!--<script src="math.js"></script>-->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/ychalier/pifekit/pifekit.min.css" />
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/ychalier/pifekit/pifekit.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
     <script src="smith.js"></script>
+    <script src="master.js"></script>
 </head>
 
 
 <body>
-    <script>
-        fetch("data/ouestfrance.json").then(res => res.json()).then(data => {
-            let words = [];
-            data.lexicon.forEach(entry => {
-                words.push(entry.word);
-            });
-            console.log("Dataset contains", words.length, "words");
-            let diagram = new Diagram(6, 6, .3);
-            console.log(diagram);
-            let lexicon = new Lexicon(words);
-            // let generator = lexicon.select_word(["B", null, null, "T"]);
-            // console.log(generator.next());
-            generate(diagram, lexicon, 10000);
-            console.log(diagram);
-        });
-    </script>
+    <div class="columns">
+        <div class="column col-2 vscroll p-4">
+            <a onclick="location.reload();" class="btn btn-primary">Regénérer</a>
+            <br>
+            <br>
+            <button onclick="showFilledDiagram(DIAGRAM);" class="btn btn-primary">Placer les mots</button>
+            
+        </div>
+        <div class="column col-6 vscroll">
+            <div id="diagram" class="my-4"></div>
+        </div>
+        <div class="column col-4 vscroll">
+            <div id="clues" class="my-4"></div>
+        </div>
+    </div>
 </body>
 
 </html>

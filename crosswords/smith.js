@@ -1,3 +1,15 @@
+var LEXICON = null;
+var DIAGRAM = null;
+var BLACKLIST = null;
+var BACKTRACKS = 0;
+
+
+const EXIT_SUCCESS = 0;
+const EXIT_FAILURE = 1;
+const EXIT_TIMEOUT = 2;
+const EXIT_BREAKPOINT = 3;
+
+
 class Slot {
 
     constructor(start_square, accross, row, col, length) {
@@ -8,25 +20,44 @@ class Slot {
         this.length = length;
         this.filled = false;
         this.word = null;
+        this.wordIndex = null;
         this.alternatives = null;
     }
 
-    fill(word) {
+    fill(wordIndex) {
         this.filled = true;
-        this.word = word;
+        this.wordIndex = wordIndex;
+        this.word = LEXICON.lengths[this.length][this.wordIndex];
+    }
+
+    indices() {
+        let arr = [];
+        if (this.accross) {
+            for (let k = 0; k < this.length; k++) {
+                arr.push([this.row, this.col + k]);
+            }
+        } else {
+            for (let k = 0; k < this.length; k++) {
+                arr.push([this.row + k, this.col]);
+            }
+        }
+        return arr;
+    }
+
+    interlocks(other) {
+        let this_indices = this.indices();
+        let other_indices = other.indices();
+        for (let k = 0; k < this_indices.length; k++) {
+            for (let p = 0; p < other_indices.length; p++) {
+                if (this_indices[k][0] == other_indices[p][0] && this_indices[k][1] == other_indices[p][1]) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }
-
-const shuffleArray = array => {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        const temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
-    }
-}
-
 
 const UNIT_FREE = 0;
 const UNIT_BLOCKED = 1;
@@ -37,16 +68,7 @@ class Diagram {
         this.rows = rows;
         this.cols = cols;
         this.grid = [];
-        for (let i = 0; i < this.rows; i++) {
-            this.grid.push([]);
-            for (let j = 0; j < this.cols; j++) {
-                if (Math.random() < block_probability) {
-                    this.grid[i].push(UNIT_BLOCKED);
-                } else {
-                    this.grid[i].push(UNIT_FREE);
-                }
-            }
-        }
+        this.generate_grid(block_probability);
         this.letters = [];
         for (let i = 0; i < this.rows; i++) {
             this.letters.push([]);
@@ -86,6 +108,74 @@ class Diagram {
             }
         }
 
+        // console.log(this.slots);
+
+    }
+
+    print() {
+        let s = "";
+        for (let i = 0; i < this.rows; i++) {
+            for (let j = 0; j < this.cols; j++) {
+                if (this.grid[i][j] == UNIT_FREE) {
+                    if (this.letters[i][j] != null) {
+                        s = s + this.letters[i][j] + " ";
+                    } else {
+                        s = s + "  ";
+                    }
+                } else {
+                    s = s + "* ";
+                }
+            }
+            s = s + "\n";
+        }
+        console.log(s);
+        // return s;
+    }
+
+    get_neighbors(i, j) {
+        let neighbors = [];
+        if (i > 0) neighbors.push([i - 1, j]);
+        if (i < this.rows - 1) neighbors.push([i + 1, j]);
+        if (j > 0) neighbors.push([i, j - 1]);
+        if (j < this.cols - 1) neighbors.push([i, j + 1]);
+        return neighbors;
+    }
+
+    generate_grid(block_probability) {
+        this.grid = [];
+        let candidates = [];
+        for (let i = 0; i < this.rows; i++) {
+            this.grid.push([]);
+            for (let j = 0; j < this.cols; j++) {
+                this.grid[i].push(UNIT_FREE);
+                candidates.push([i, j]);
+            }
+        }
+        let n = this.rows * this.cols * block_probability;
+        shuffleArray(candidates);
+        let blocked = 0;
+        while (blocked < n && candidates.length > 0) {
+            let next_block = candidates.pop();
+            this.grid[next_block[0]][next_block[1]] = UNIT_BLOCKED;
+            candidates = candidates.filter(block => {
+                /*
+                if (Math.abs(block[0] - next_block[0]) + Math.abs(block[1] - next_block[1]) <= 1) {
+                    return false;
+                }
+                */
+                let neighbors = this.get_neighbors(...block);
+                for (let k = 0; k < neighbors.length; k++) {
+                    let neighbor_neighbors = this.get_neighbors(...neighbors[k]);
+                    let free_count = 0;
+                    neighbor_neighbors.forEach(nn => {
+                        if (this.grid[nn[0]][nn[1]] == UNIT_FREE) free_count++;
+                    });
+                    if (free_count == 1) return false;
+                }
+                return true;
+            });
+            blocked++;
+        }
     }
 
     get_empty_slots() {
@@ -108,7 +198,7 @@ class Diagram {
         if (slot.accross) {
             for (let k = 0; k < slot.word.length; k++) {
                 let j = k + slot.col;
-                this.letters[slot.row][k] = slot.word[k];
+                this.letters[slot.row][j] = slot.word[k];
             }
         } else {
             for (let k = 0; k < slot.word.length; k++) {
@@ -116,7 +206,6 @@ class Diagram {
                 this.letters[i][slot.col] = slot.word[k];
             }
         }
-        // console.log("Filled with", slot.word, ":", this.letters);
     }
 
     refill() {
@@ -152,6 +241,11 @@ function intersect(...sets) {
     return sets.reduce((a, b) => [...a].filter(c => b.has(c)));
 }
 
+function difference(a, b) {
+    // Computes a - b
+    return new Set([...a].filter(x => !b.has(x)));
+}
+
 
 class Lexicon {
 
@@ -177,16 +271,18 @@ class Lexicon {
             this.ialphabet[this.alphabet[i]] = i;
         }
         this.lengths = {};
+        this.ilengths = {};
         this.words.forEach(word => {
             let length = word.length;
             if (!(length in this.lengths)) {
                 this.lengths[length] = [];
             }
             this.lengths[length].push(word);
+            this.ilengths[word] = this.lengths[length].length - 1;
         });
         this.bitmaps = {};
         for (let l in this.lengths) {
-            console.log("Creating bitmap for length", l);
+            // console.log("Creating bitmap for length", l);
             this.bitmaps[l] = {};
             for (let j = 0; j < this.alphabet.length; j++) {
                 this.bitmaps[l][j] = {};
@@ -206,7 +302,7 @@ class Lexicon {
         }
     }
 
-    select_word = function*(slot_frame) {
+    select_word(slot_frame) {
         let l = slot_frame.length;
         let bitmaps = [];
         let empty = true;
@@ -218,90 +314,120 @@ class Lexicon {
             }
         });
         if (empty) {
-            for (let k = 0; k < this.lengths[l].length; k++) {
-                yield this.lengths[l][k];
-            }
+            return Array.from(difference([...Array(this.lengths[l].length).keys()], BLACKLIST[l]));
+        } else {
+            return Array.from(difference(intersect(...bitmaps), BLACKLIST[l]));
         }
-        let arr = Array.from(intersect(...bitmaps));
-        for (let k = 0; k < arr.length; k++) {
-            let i = arr[k];
-            yield this.lengths[l][i];
-        }
-    }
-
-    count_possibilities(slot_frame) {
-        let l = slot_frame.length;
-        let bitmaps = [];
-        let empty = true;
-        slot_frame.forEach((letter, k) => {
-            if (letter != null) {
-                empty = false;
-                let j = this.ialphabet[letter];
-                bitmaps.push(this.bitmaps[l][j][k]);
-            }
-        });
-        if (empty) {
-            return this.lengths[l].length;
-        }
-        return intersect(bitmaps).size;
     }
 
 }
 
 
-function generateAux(diagram, lexicon, time_start, time_max, blacklist) {
-    // console.log("Generating AUX");
-    let empty_slots = diagram.get_empty_slots();
-    // console.log("Empty slots:", empty_slots);
-    if (empty_slots.length == 0) {
-        console.log("All slots are filled!");
-        return true;
-    }
-    empty_slots.forEach(slot => {
-        let slot_frame_i = diagram.get_slot_frame(slot);
-        let k = 0;
-        slot_frame_i.forEach(letter => {
-            if (letter != null) {
-                k++;
+function aux(slot_table, slot_index, time_start, time_max) {
+    if (slot_index >= slot_table.length) return EXIT_SUCCESS;
+    if (new Date() - time_start > time_max) return EXIT_TIMEOUT;
+    let slot = slot_table[slot_index];
+    let slot_frame = DIAGRAM.get_slot_frame(slot);
+    let words = LEXICON.select_word(slot_frame);
+    for (let p = 0; p < words.length; p++) {
+        let word_index = words[p];
+        slot.fill(word_index);
+        DIAGRAM.fill(slot);
+        BLACKLIST[slot.length].add(word_index);
+        let recursive_output = aux(slot_table, slot_index + 1, time_start, time_max);
+        if (recursive_output != EXIT_FAILURE) {
+            if (recursive_output == EXIT_SUCCESS) {
+                return EXIT_SUCCESS;
+            } else if (recursive_output == EXIT_TIMEOUT) {
+                return EXIT_TIMEOUT;
+            } else if (recursive_output == EXIT_BREAKPOINT) {
+                return EXIT_BREAKPOINT;
             }
-        });
-        let n = slot_frame_i.length;
-        slot.alternatives = Math.pow(lexicon.lengths[n].length, (n - k) / n);
-    });
-    empty_slots.sort((a, b) => {
-        return a.alternatives > b.alternatives;
-    });
-    // console.log("Empty slots sorted by alternatives:", empty_slots);
-    let slot = empty_slots.shift();
-    let slot_frame = diagram.get_slot_frame(slot);
-    let word_iterator = lexicon.select_word(slot_frame);
-    while (true) {
-        let word = word_iterator.next().value;
-        if (word == undefined || blacklist.has(word)) {
-            break;
         }
-        if (new Date() - time_start > time_max) {
-            console.log("Early stopping");
-            return false;
-        }
-        slot.fill(word);
-        diagram.fill(slot);
-        let extended_blacklist = new Set(blacklist);
-        extended_blacklist.add(word);
-        let recursive_output = generateAux(diagram, lexicon, time_start, time_max, extended_blacklist);
-        if (recursive_output) {
-            return true;
-        }
+        BLACKLIST[slot.length].delete(slot.wordIndex);
     }
     slot.filled = false;
-    diagram.refill();
-    return false;
+    DIAGRAM.refill();
+    BACKTRACKS++;
+    return EXIT_FAILURE;
 }
 
 
 function generate(diagram, lexicon, time_max) {
+    console.log("Generating…");
+    diagram.slots.forEach(slot => {
+        slot.word = null;
+        slot.filled = false;
+    });
+    diagram.refill();
+    BLACKLIST = {};
+    for (let l in lexicon.lengths) {
+        BLACKLIST[l] = new Set();
+    }
+    let slot_table_raw = [];
+    let slot_table_sorted = [];
     diagram.slots.forEach(slot => {
         slot.alternatives = lexicon.lengths[slot.length].length;
+        slot_table_raw.push(slot);
     });
-    generateAux(diagram, lexicon, new Date(), time_max, new Set());
+
+    // step (i)
+    let min_index = null;
+    for (let i = 0; i < slot_table_raw.length; i++) {
+        if (min_index == null || slot_table_raw[min_index].alternatives > slot_table_raw[i].alternatives) {
+            min_index = i;
+        }
+    }
+    let slot = slot_table_raw.splice(min_index, 1)[0];
+    slot_table_sorted.push(slot);
+
+    while (slot_table_raw.length > 0) {
+        // step (ii)
+        let interlocking = [];
+        slot_table_raw.forEach((other_slot, interlocking_i) => {
+            if (slot.interlocks(other_slot)) {
+                let k = 0;
+                slot_table_sorted.forEach(sorted_slot => {
+                    if (sorted_slot.interlocks(other_slot)) {
+                        k++;
+                    }
+                });
+                other_slot.alternatives = Math.pow(
+                    LEXICON.lengths[other_slot.length].length,
+                    (other_slot.length - k) / other_slot.length
+                );
+                interlocking.push(interlocking_i);
+            }
+        });
+
+        // step (iii)
+        if (interlocking.length > 0) {
+            interlocking.sort((a, b) => {
+                return slot_table_raw[a].alternatives - slot_table_raw[b].alternatives;
+            });
+            slot = slot_table_raw.splice(interlocking.shift(), 1)[0];
+        } else {
+            slot_table_raw.sort((a, b) => {
+                return a.alternatives - b.alternatives;
+            });
+            slot = slot_table_raw.shift();
+        }
+        slot_table_sorted.push(slot);
+    }
+
+    BACKTRACKS = 0;
+    output = aux(slot_table_sorted, 0, new Date(), time_max);
+    console.log("Exit status is",
+        (output == EXIT_SUCCESS ? "SUCCESS" : (
+            output == EXIT_FAILURE ? "FAILURE" : (
+                output == EXIT_TIMEOUT ? "TIMEOUT" : (
+                    output == EXIT_BREAKPOINT ? "BREAKPOINT" : ""
+                )
+            )
+        ))
+    );
+    console.log("Bactracked", BACKTRACKS, "times");
+    if (output != EXIT_SUCCESS) {
+        alert("Une erreur est survenue durant la génération");
+    }
 }
