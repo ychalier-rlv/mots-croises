@@ -14,13 +14,13 @@
 
 
 <body>
+    <!--
     <div id="content" class="columns blurry">
-        <div class="column col-2 vscroll p-4">
+        <div id="buttons" class="column col-2 vscroll p-4">
             <a onclick="location.reload();" class="btn btn-primary">Regénérer</a>
             <br>
             <br>
             <button onclick="showFilledDiagram(DIAGRAM);" class="btn btn-primary">Placer les mots</button>
-            
         </div>
         <div class="column col-6 vscroll">
             <div id="diagram" class="my-4"></div>
@@ -28,6 +28,13 @@
         <div class="column col-4 vscroll">
             <div id="clues" class="my-4"></div>
         </div>
+    </div>
+    -->
+    <div id="content" class="blurry">
+        <div id="diagram-wrapper">
+            <div id="diagram"></div>
+        </div>
+        <div id="clues"></div>
     </div>
     <div id="loader" class="text-center">
         <div><b>Génération en cours…</b><progress id="loading-bar" class="progress" max="10"></progress></div>

@@ -25,6 +25,7 @@ function inflateDiagram(diagram) {
                 cellEl.classList.add("blocked");
             } else {
                 let input = document.createElement("input");
+                input.maxLength = 1;
                 cellEl.appendChild(input);
             }
             DOM_DIAGRAM[i].push(cellEl);
@@ -57,7 +58,9 @@ function setClues() {
     });
     let container = document.getElementById("clues");
     container.innerHTML = "";
-    container.innerHTML += "<b>Horizontal</b>";
+
+    let divHorizontal = document.createElement("div");
+    divHorizontal.innerHTML += "<b>Horizontal</b>";
     let accrossList = document.createElement("ol");
     accross.forEach(entry => {
         let el = document.createElement("li");
@@ -65,8 +68,12 @@ function setClues() {
         el.textContent = capitalizeFirstLetter(entry.clue);
         accrossList.appendChild(el);
     });
-    container.appendChild(accrossList);
-    container.innerHTML += "<b>Vertical</b>";
+    divHorizontal.appendChild(accrossList);
+
+    container.appendChild(divHorizontal);
+
+    let divVertical = document.createElement("div");
+    divVertical.innerHTML += "<b>Vertical</b>";
     let downList = document.createElement("ol");
     down.forEach(entry => {
         let el = document.createElement("li");
@@ -74,7 +81,8 @@ function setClues() {
         el.textContent = capitalizeFirstLetter(entry.clue);
         downList.appendChild(el);
     });
-    container.appendChild(downList);
+    divVertical.appendChild(downList);
+    container.appendChild(divVertical);
     for (let ss in start_squares) {
         let i = start_squares[ss][0];
         let j = start_squares[ss][1];
@@ -137,6 +145,27 @@ function fillSlots() {
         setClues();
         document.getElementById("content").classList.remove("blurry");
         document.getElementById("loader").classList.add("hide");
+
+        document.querySelectorAll(".cell").forEach(cell => {
+            let startSquare = cell.querySelector(".start-square");
+            console.log(cell);
+            if (startSquare != null) {
+                let squareNumber = parseInt(startSquare.textContent);
+                let callbackIn = (event) => {
+                    document.querySelectorAll("li[value='" + squareNumber + "']").forEach(li => {
+                        li.classList.add("active");
+                    });
+                }
+                let callbackOut = (event) => {
+                    document.querySelectorAll("li[value='" + squareNumber + "']").forEach(li => {
+                        li.classList.remove("active");
+                    });
+                }
+                cell.addEventListener("focusin", callbackIn);
+                cell.addEventListener("focusout", callbackOut);
+            }
+        });
+
     }, 100);
 
 }
@@ -154,5 +183,6 @@ window.addEventListener("load", () => {
         console.log("Dataset contains", words.length, "words");
         LEXICON = new Lexicon(words);
         fillSlots();
+
     });
 });
