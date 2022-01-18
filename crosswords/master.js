@@ -111,8 +111,16 @@ function generateDiagram() {
 
 function fillSlots() {
     let params = new URLSearchParams(window.location.search);
-    let timeout = params.has("t") ? parseInt(params.get("t")) * 1000 : 5000;
-    generate(DIAGRAM, LEXICON, timeout);
+    let timeout = params.has("t") ? parseInt(params.get("t")) * 1000 : 1000;
+    let retries = params.has("r") ? parseInt(params.get("r")) : 5;
+    for (let r = 0; r < retries; r++) {
+        let output = generate(DIAGRAM, LEXICON, timeout);
+        if (output == EXIT_SUCCESS) {
+            break;
+        }
+        LEXICON.shuffle();
+    }
+
     setClues();
 }
 

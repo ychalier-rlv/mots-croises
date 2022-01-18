@@ -302,6 +302,41 @@ class Lexicon {
         }
     }
 
+
+    shuffle() {
+        shuffleArray(this.words);
+        this.lengths = {};
+        this.ilengths = {};
+        this.words.forEach(word => {
+            let length = word.length;
+            if (!(length in this.lengths)) {
+                this.lengths[length] = [];
+            }
+            this.lengths[length].push(word);
+            this.ilengths[word] = this.lengths[length].length - 1;
+        });
+        this.bitmaps = {};
+        for (let l in this.lengths) {
+            // console.log("Creating bitmap for length", l);
+            this.bitmaps[l] = {};
+            for (let j = 0; j < this.alphabet.length; j++) {
+                this.bitmaps[l][j] = {};
+                for (let k = 0; k < l; k++) {
+                    this.bitmaps[l][j][k] = new Set();
+                }
+            }
+            this.lengths[l].forEach((word, i) => {
+                this.alphabet.forEach((letter, j) => {
+                    for (let k = 0; k < word.length; k++) {
+                        if (word[k] == letter) {
+                            this.bitmaps[l][j][k].add(i);
+                        }
+                    }
+                });
+            });
+        }
+    }
+
     select_word(slot_frame) {
         let l = slot_frame.length;
         let bitmaps = [];
@@ -428,6 +463,7 @@ function generate(diagram, lexicon, time_max) {
     );
     console.log("Bactracked", BACKTRACKS, "times");
     if (output != EXIT_SUCCESS) {
-        alert("Une erreur est survenue durant la génération");
+        // alert("Une erreur est survenue durant la génération");
     }
+    return output;
 }
