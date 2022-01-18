@@ -14,7 +14,7 @@
 
 
 <body>
-    <div class="columns">
+    <div id="content" class="columns blurry">
         <div class="column col-2 vscroll p-4">
             <a onclick="location.reload();" class="btn btn-primary">Regénérer</a>
             <br>
@@ -28,6 +28,9 @@
         <div class="column col-4 vscroll">
             <div id="clues" class="my-4"></div>
         </div>
+    </div>
+    <div id="loader" class="text-center">
+        <div><b>Génération en cours…</b><progress id="loading-bar" class="progress" max="10"></progress></div>
     </div>
 </body>
 
