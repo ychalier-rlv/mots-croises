@@ -64,11 +64,15 @@ const UNIT_BLOCKED = 1;
 
 class Diagram {
 
-    constructor(rows, cols, block_probability) {
+    constructor(rows, cols, block_probability, preset) {
         this.rows = rows;
         this.cols = cols;
         this.grid = [];
-        this.generate_grid(block_probability);
+        if (preset != null) {
+            this.generate_from_preset(preset);
+        } else {
+            this.generate_grid(block_probability);
+        }
         this.letters = [];
         for (let i = 0; i < this.rows; i++) {
             this.letters.push([]);
@@ -139,6 +143,23 @@ class Diagram {
         if (j > 0) neighbors.push([i, j - 1]);
         if (j < this.cols - 1) neighbors.push([i, j + 1]);
         return neighbors;
+    }
+
+    generate_from_preset(preset) {
+        this.grid = [];
+        let split = preset.split("2");
+        this.rows = split.length;
+        this.cols = split[0].length;
+        for (let i = 0; i < this.rows; i++) {
+            this.grid.push([]);
+            for (let j = 0; j < this.cols; j++) {
+                if (split[i][j] == "0") {
+                    this.grid[i].push(UNIT_FREE);
+                } else {
+                    this.grid[i].push(UNIT_BLOCKED);
+                }
+            }
+        }
     }
 
     generate_grid(block_probability) {

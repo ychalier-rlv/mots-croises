@@ -112,7 +112,8 @@ function generateDiagram() {
     let width = params.has("w") ? parseInt(params.get("w")) : 13;
     let height = params.has("h") ? parseInt(params.get("h")) : 9;
     let block_probability = params.has("p") ? parseFloat(params.get("p")) : 0.3;
-    DIAGRAM = new Diagram(height, width, block_probability);
+    let preset = params.has("s") ? params.get("s") : null;
+    DIAGRAM = new Diagram(height, width, block_probability, preset);
     inflateDiagram(DIAGRAM);
 }
 
