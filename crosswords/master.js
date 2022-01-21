@@ -107,13 +107,27 @@ function showFilledDiagram(diagram) {
 }
 
 
+function decodePreset(preset) {
+    if (preset == null) return null;
+    let rows = parseInt(preset.slice(0, 2), 16);
+    let cols = parseInt(preset.slice(2, 4), 16);
+    let decoded = "";
+    for (let i = 4; i < preset.length; i++) {
+        decoded += parseInt(preset[i], 16).toString(2).padStart(4, "0");
+    }
+    decoded = decoded.padStart(rows * cols, "0");
+    let regex = new RegExp("(.{" + cols + "})", "g");
+    return decoded.replace(regex, "$12").slice(0, rows * cols + rows - 1);
+}
+
+
 function generateDiagram() {
     let params = new URLSearchParams(window.location.search);
     let width = params.has("w") ? parseInt(params.get("w")) : 13;
     let height = params.has("h") ? parseInt(params.get("h")) : 9;
     let block_probability = params.has("p") ? parseFloat(params.get("p")) : 0.3;
     let preset = params.has("s") ? params.get("s") : null;
-    DIAGRAM = new Diagram(height, width, block_probability, preset);
+    DIAGRAM = new Diagram(height, width, block_probability, decodePreset(preset));
     inflateDiagram(DIAGRAM);
     resizeElements();
 }

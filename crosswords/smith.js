@@ -111,9 +111,17 @@ class Diagram {
                 }
             }
         }
+    }
 
-        // console.log(this.slots);
-
+    encode() {
+        let bin = this.grid.map(row => row.join("")).reduce((prev, cur) => prev + cur);
+        let hex = "";
+        for (let i = bin.length; i > -3; i = i - 4) {
+            let slice = bin.slice(Math.max(i - 4, 0), i).padStart(4, "0");
+            hex = parseInt(slice, 2).toString(16) + hex;
+        }
+        hex = hex.replace(/^0*/g, "");
+        return this.rows.toString(16).padStart(2, "0") + this.cols.toString(16).padStart(2, "0") + hex;
     }
 
     print() {
