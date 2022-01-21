@@ -115,6 +115,7 @@ function generateDiagram() {
     let preset = params.has("s") ? params.get("s") : null;
     DIAGRAM = new Diagram(height, width, block_probability, preset);
     inflateDiagram(DIAGRAM);
+    resizeElements();
 }
 
 
@@ -149,7 +150,6 @@ function fillSlots() {
 
         document.querySelectorAll(".cell").forEach(cell => {
             let startSquare = cell.querySelector(".start-square");
-            console.log(cell);
             if (startSquare != null) {
                 let squareNumber = parseInt(startSquare.textContent);
                 let callbackIn = (event) => {
@@ -167,8 +167,23 @@ function fillSlots() {
             }
         });
 
+        resizeElements();
+
     }, 100);
 
+}
+
+
+function resizeElements() {
+    let diagramAspectRatio = 1;
+    if (DIAGRAM.cols > 0 && DIAGRAM.rows > 0) {
+        diagramAspectRatio = DIAGRAM.cols / DIAGRAM.rows;
+    }
+    let clueHeight = document.getElementById("clues").offsetHeight;
+    let diagramHeight = window.innerHeight - clueHeight;
+    let diagramWidth = Math.min(diagramAspectRatio * diagramHeight, window.innerWidth);
+    console.log("Resizing diagram width to", diagramWidth, "px");
+    document.getElementById("diagram").style.width = diagramWidth + "px";
 }
 
 
@@ -186,4 +201,5 @@ window.addEventListener("load", () => {
         fillSlots();
 
     });
+    window.addEventListener("resize", resizeElements);
 });

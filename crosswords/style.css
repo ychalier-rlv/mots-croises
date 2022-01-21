@@ -106,12 +106,10 @@ ol li {
     flex-direction: column;
     height: 100vh;
     overflow: hidden;
-    padding: 1em;
 }
 
 #diagram {
-    width: 50vw;
-    margin: 0 auto 1em auto;
+    margin: 0 auto;
 }
 
 #diagram input {
@@ -119,11 +117,11 @@ ol li {
 }
 
 #clues {
-    height: 100%;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     font-size: 80%;
+    padding: 2em;
 }
 
 #clues ol {
@@ -145,7 +143,7 @@ ol li {
         display: none;
     }
     #diagram {
-        width: 80vw;
+        width: 80vw !important;
         border-color: black;
     }
     .cell {
