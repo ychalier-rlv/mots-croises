@@ -157,3 +157,31 @@ ol li {
 li.active {
     color: crimson;
 }
+
+.cell.is-error {
+    border-color: hsl(22, 100%, 45%);
+}
+
+.cell.is-error input {
+    color: hsl(22, 100%, 75%) !important;
+    ;
+}
+
+.cell.is-success {
+    border-color: hsl(128, 57%, 45%);
+}
+
+.cell.is-success input {
+    color: hsl(128, 57%, 75%) !important;
+    ;
+}
+
+#menu {
+    position: fixed;
+    top: .4rem;
+    left: .4rem;
+}
+
+#menu .icon {
+    background-color: hsl(241, 63%, 75%);
+}

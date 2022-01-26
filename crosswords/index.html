@@ -18,6 +18,19 @@
         <div id="diagram"></div>
         <div id="clues"></div>
     </div>
+    <div id="menu" class="dropdown">
+        <a class="btn btn-link dropdown-toggle" tabindex="0"><i class="icon icon-gear"></i></a>
+        <ul class="menu">
+            <button class="btn btn-link" onclick="displayErrors()">Correction</button>
+            <button class="btn btn-link" onclick="showFilledDiagram()">Solution</button>
+            <div class="form-group">
+                <label class="form-switch">
+                    <input id="input-display-errors" type="checkbox">
+                    <i class="form-icon"></i> Afficher les erreurs
+                </label>
+            </div>
+        </ul>
+    </div>
     <div id="loader" class="text-center">
         <div><b>Génération en cours…</b><progress id="loading-bar" class="progress" max="10"></progress></div>
     </div>

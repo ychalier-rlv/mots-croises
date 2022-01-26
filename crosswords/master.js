@@ -12,6 +12,7 @@ function capitalizeFirstLetter(string) {
 
 function inflateDiagram(diagram) {
     let container = document.getElementById("diagram");
+    let displayErrorSwitch = document.getElementById("input-display-errors");
     DOM_DIAGRAM = [];
     container.innerHTML = "";
     diagram.grid.forEach((row, i) => {
@@ -25,6 +26,14 @@ function inflateDiagram(diagram) {
                 cellEl.classList.add("blocked");
             } else {
                 let input = document.createElement("input");
+                input.addEventListener("input", () => {
+                    if (displayErrorSwitch.checked) {
+                        displayErrors();
+                    } else {
+                        cellEl.classList.remove("is-success");
+                        cellEl.classList.remove("is-error");
+                    }
+                });
                 input.maxLength = 1;
                 cellEl.appendChild(input);
             }
@@ -94,12 +103,12 @@ function setClues() {
 }
 
 
-function showFilledDiagram(diagram) {
-    for (let i = 0; i < diagram.rows; i++) {
-        for (let j = 0; j < diagram.cols; j++) {
-            if (diagram.letters[i][j] != null) {
-                DOM_DIAGRAM[i][j].querySelector("input").value = diagram.letters[i][j];
-            } else if (diagram.grid[i][j] == UNIT_FREE) {
+function showFilledDiagram() {
+    for (let i = 0; i < DIAGRAM.rows; i++) {
+        for (let j = 0; j < DIAGRAM.cols; j++) {
+            if (DIAGRAM.letters[i][j] != null) {
+                DOM_DIAGRAM[i][j].querySelector("input").value = DIAGRAM.letters[i][j];
+            } else if (DIAGRAM.grid[i][j] == UNIT_FREE) {
                 DOM_DIAGRAM[i][j].querySelector("input").value = "";
             }
         }
@@ -185,6 +194,27 @@ function fillSlots() {
 
     }, 100);
 
+}
+
+
+function displayErrors() {
+    for (let i = 0; i < DIAGRAM.rows; i++) {
+        for (let j = 0; j < DIAGRAM.cols; j++) {
+            if (DIAGRAM.grid[i][j] == UNIT_FREE) {
+                let input = DOM_DIAGRAM[i][j].querySelector("input");
+                if (input.value.match(/[a-zA-Z]/g)) {
+                    if (input.value.toLowerCase() == DIAGRAM.letters[i][j].toLowerCase()) {
+                        DOM_DIAGRAM[i][j].classList.add("is-success");
+                    } else {
+                        DOM_DIAGRAM[i][j].classList.add("is-error");
+                    }
+                } else {
+                    DOM_DIAGRAM[i][j].classList.remove("is-success");
+                    DOM_DIAGRAM[i][j].classList.remove("is-error");
+                }
+            }
+        }
+    }
 }
 
 
