@@ -139,7 +139,8 @@ ol li {
 }
 
 @media print {
-    #buttons {
+    #buttons,
+    #menu {
         display: none;
     }
     #diagram {

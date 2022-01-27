@@ -21,14 +21,14 @@
     <div id="menu" class="dropdown">
         <a class="btn btn-link dropdown-toggle" tabindex="0"><i class="icon icon-gear"></i></a>
         <ul class="menu">
-            <button class="btn btn-link" onclick="displayErrors()">Correction</button>
-            <button class="btn btn-link" onclick="showFilledDiagram()">Solution</button>
+            <!--<button class="btn text-tiny" onclick="displayErrors()">Correction</button><br>-->
             <div class="form-group">
-                <label class="form-switch">
-                    <input id="input-display-errors" type="checkbox">
+                <label class="form-switch text-tiny">
+                    <input id="input-display-errors" type="checkbox" oninput="displayErrors()">
                     <i class="form-icon"></i> Afficher les erreurs
                 </label>
             </div>
+            <button class="btn text-tiny my-1" onclick="showFilledDiagram()">Solution</button>
         </ul>
     </div>
     <div id="loader" class="text-center">

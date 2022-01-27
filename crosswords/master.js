@@ -127,6 +127,7 @@ function showFilledDiagram() {
             }
         }
     }
+    displayErrors();
 }
 
 
@@ -205,6 +206,7 @@ function fillSlots() {
         });
 
         resizeElements();
+        displayErrors();
 
     }, 100);
 
@@ -216,11 +218,16 @@ function displayErrors() {
         for (let j = 0; j < DIAGRAM.cols; j++) {
             if (DIAGRAM.grid[i][j] == UNIT_FREE) {
                 let input = DOM_DIAGRAM[i][j].querySelector("input");
-                if (input.value.match(/[a-zA-Z]/g)) {
-                    if (input.value.toLowerCase() == DIAGRAM.letters[i][j].toLowerCase()) {
-                        DOM_DIAGRAM[i][j].classList.add("is-success");
+                if (document.getElementById("input-display-errors").checked) {
+                    if (input.value.match(/[a-zA-Z]/g)) {
+                        if (input.value.toLowerCase() == DIAGRAM.letters[i][j].toLowerCase()) {
+                            DOM_DIAGRAM[i][j].classList.add("is-success");
+                        } else {
+                            DOM_DIAGRAM[i][j].classList.add("is-error");
+                        }
                     } else {
-                        DOM_DIAGRAM[i][j].classList.add("is-error");
+                        DOM_DIAGRAM[i][j].classList.remove("is-success");
+                        DOM_DIAGRAM[i][j].classList.remove("is-error");
                     }
                 } else {
                     DOM_DIAGRAM[i][j].classList.remove("is-success");
