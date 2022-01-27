@@ -42,6 +42,18 @@ function inflateDiagram(diagram) {
         });
         container.appendChild(rowEl);
     });
+    diagram.slots.forEach(slot => {
+        let indices = slot.indices();
+        for (let k = 0; k < indices.length; k++) {
+            let i = indices[k][0];
+            let j = indices[k][1];
+            if (slot.accross) {
+                DOM_DIAGRAM[i][j].setAttribute("accross", slot.start_square + 1);
+            } else {
+                DOM_DIAGRAM[i][j].setAttribute("down", slot.start_square + 1);
+            }
+        }
+    });
 }
 
 
@@ -69,6 +81,7 @@ function setClues() {
     container.innerHTML = "";
 
     let divHorizontal = document.createElement("div");
+    divHorizontal.setAttribute("direction", "accross");
     divHorizontal.innerHTML += "<b>Horizontal</b>";
     let accrossList = document.createElement("ol");
     accross.forEach(entry => {
@@ -82,6 +95,7 @@ function setClues() {
     container.appendChild(divHorizontal);
 
     let divVertical = document.createElement("div");
+    divVertical.setAttribute("direction", "down");
     divVertical.innerHTML += "<b>Vertical</b>";
     let downList = document.createElement("ol");
     down.forEach(entry => {
@@ -172,22 +186,22 @@ function fillSlots() {
         document.getElementById("loader").classList.add("hide");
 
         document.querySelectorAll(".cell").forEach(cell => {
-            let startSquare = cell.querySelector(".start-square");
-            if (startSquare != null) {
-                let squareNumber = parseInt(startSquare.textContent);
-                let callbackIn = (event) => {
-                    document.querySelectorAll("li[value='" + squareNumber + "']").forEach(li => {
-                        li.classList.add("active");
-                    });
+            cell.addEventListener("focusin", () => {
+                if (cell.hasAttribute("accross")) {
+                    document.querySelector("div[direction='accross'] li[value='" + cell.getAttribute("accross") + "']").classList.add("active");
                 }
-                let callbackOut = (event) => {
-                    document.querySelectorAll("li[value='" + squareNumber + "']").forEach(li => {
-                        li.classList.remove("active");
-                    });
+                if (cell.hasAttribute("down")) {
+                    document.querySelector("div[direction='down'] li[value='" + cell.getAttribute("down") + "']").classList.add("active");
                 }
-                cell.addEventListener("focusin", callbackIn);
-                cell.addEventListener("focusout", callbackOut);
-            }
+            });
+            cell.addEventListener("focusout", () => {
+                if (cell.hasAttribute("accross")) {
+                    document.querySelector("div[direction='accross'] li[value='" + cell.getAttribute("accross") + "']").classList.remove("active");
+                }
+                if (cell.hasAttribute("down")) {
+                    document.querySelector("div[direction='down'] li[value='" + cell.getAttribute("down") + "']").classList.remove("active");
+                }
+            });
         });
 
         resizeElements();
