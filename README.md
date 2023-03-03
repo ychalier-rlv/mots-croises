@@ -4,7 +4,7 @@ Un générateur de mots croisés. Implémentation de [*A prototype crossword com
 
 ## Utilisation
 
-Rendez-vous sur [ychalier.github.io/rlv/crosswords/](https://ychalier.github.io/rlv/crosswords/).
+Rendez-vous sur [https://ychalier-rlv.github.io/mots-croises/](https://ychalier-rlv.github.io/mots-croises/).
 
 Quelques paramètres GET sont disponibles :
 
